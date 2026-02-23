@@ -1,0 +1,553 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+/* ─── CSS Variables ─────────────────────────────────────────────────── */
+:root {
+  /* Colors */
+  --bg-base:       #050a14;
+  --bg-surface:    #0a1020;
+  --bg-card:       rgba(12, 20, 40, 0.85);
+  --bg-glass:      rgba(14, 165, 233, 0.06);
+  --bg-hover:      rgba(14, 165, 233, 0.10);  
+
+  --blue:          #0ea5e9;
+  --blue-dim:      #0284c7;
+  --blue-glow:     rgba(14, 165, 233, 0.25);
+  --green:         #10b981;
+  --green-dim:     rgba(16, 185, 129, 0.15);
+  --amber:         #f59e0b;
+  --amber-dim:     rgba(245, 158, 11, 0.15);
+  --red:           #ef4444;
+  --red-dim:       rgba(239, 68, 68, 0.15);
+  --purple:        #8b5cf6;
+  --purple-dim:    rgba(139, 92, 246, 0.15);
+  --cyan:          #06b6d4;
+
+  --text-primary:  #f0f6ff;
+  --text-secondary:#94a3b8;
+  --text-muted:    #475569;
+
+  --border:        rgba(14, 165, 233, 0.15);
+  --border-hover:  rgba(14, 165, 233, 0.35);
+
+  /* Typography */
+  --font-body:     'Inter', system-ui, sans-serif;
+  --font-heading:  'Space Grotesk', system-ui, sans-serif;
+
+  /* Layout */
+  --sidebar-w:     260px;
+  --topbar-h:      64px;
+  --radius:        12px;
+  --radius-lg:     18px;
+  --radius-xl:     24px;
+
+  /* Shadows */
+  --shadow-sm:     0 2px 8px rgba(0,0,0,0.4);
+  --shadow-md:     0 4px 24px rgba(0,0,0,0.5);
+  --shadow-glow:   0 0 30px rgba(14, 165, 233, 0.15);
+  --shadow-card:   0 8px 32px rgba(0,0,0,0.6);
+}
+
+/* ─── Reset ──────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Global text & overflow fixes — applies everywhere */
+* {
+  overflow-wrap: break-word;   /* break long words/URLs */
+  word-break: break-word;      /* fallback for older engines */
+  min-width: 0;                /* allow flex/grid children to shrink below content size */
+}
+/* Reset min-width only for elements that must never shrink */
+button, input, select, textarea { min-width: unset; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Scrollbar ────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-surface); }
+::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--blue-dim); }
+
+/* ─── Typography ──────────────────────────────────────────────────── */
+h1,h2,h3,h4,h5,h6 { font-family: var(--font-heading); font-weight: 600; line-height: 1.25; }
+p { line-height: 1.6; }
+a { color: var(--blue); text-decoration: none; }
+
+/* ─── Utility Classes ─────────────────────────────────────────────── */
+.glass {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.glass-sm {
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--blue), var(--cyan), var(--green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-border {
+  border: 1px solid transparent;
+  background: linear-gradient(var(--bg-card), var(--bg-card)) padding-box,
+              linear-gradient(135deg, var(--blue), var(--purple)) border-box;
+}
+
+.glow-blue { box-shadow: var(--shadow-glow); }
+
+/* ─── Buttons ─────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--blue), var(--blue-dim));
+  color: #fff;
+  box-shadow: 0 0 20px var(--blue-glow);
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 30px var(--blue-glow), 0 4px 16px rgba(0,0,0,0.4);
+}
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  background: var(--bg-glass);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+}
+.btn-ghost:hover { color: var(--text-primary); background: var(--bg-glass); }
+
+.btn-danger {
+  background: var(--red-dim);
+  color: var(--red);
+  border: 1px solid rgba(239,68,68,0.3);
+}
+.btn-danger:hover { background: rgba(239,68,68,0.25); }
+
+.btn-sm { padding: 7px 14px; font-size: 13px; }
+.btn-lg { padding: 14px 28px; font-size: 16px; }
+.btn-icon { padding: 9px; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; }
+
+/* ─── Input Fields ───────────────────────────────────────────────── */
+.input {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 11px 16px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px var(--blue-glow);
+}
+.input::placeholder { color: var(--text-muted); }
+
+textarea.input { resize: vertical; min-height: 90px; }
+select.input { cursor: pointer; }
+
+/* ─── Cards ──────────────────────────────────────────────────────── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.25s, box-shadow 0.25s;
+  overflow: hidden;   /* contain children that might overflow */
+}
+.card:hover { border-color: var(--border-hover); }
+.card-sm { padding: 16px; border-radius: var(--radius); }
+
+/* ─── Badges ─────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.badge-blue   { background: var(--blue-glow); color: var(--blue); border: 1px solid rgba(14,165,233,0.3); }
+.badge-green  { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+.badge-amber  { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+.badge-red    { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(239,68,68,0.3); }
+.badge-purple { background: var(--purple-dim);color: var(--purple);border: 1px solid rgba(139,92,246,0.3); }
+
+/* ─── Divider ────────────────────────────────────────────────────── */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+/* ─── Loading Spinner ────────────────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 22px; height: 22px;
+  border: 2px solid var(--border);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+/* ─── Dots Typing Indicator ───────────────────────────────────────── */
+@keyframes blink { 0%,80%,100%{opacity:0.15} 40%{opacity:1} }
+.typing-dots span {
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--blue);
+  border-radius: 50%;
+  margin: 0 2px;
+  animation: blink 1.2s infinite;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+/* ─── Pulse Animation ─────────────────────────────────────────────── */
+@keyframes pulse-glow {
+  0%,100% { box-shadow: 0 0 10px var(--blue-glow); }
+  50%      { box-shadow: 0 0 30px rgba(14,165,233,0.4); }
+}
+.pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+/* ─── Page Layout ────────────────────────────────────────────────── */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+.main-content {
+  flex: 1;
+  margin-left: var(--sidebar-w);
+  padding-top: var(--topbar-h);
+  min-height: 100vh;
+  overflow-y: auto;
+}
+.page-body {
+  padding: 32px;
+  max-width: 1200px;
+}
+
+/* ─── Section Headings ───────────────────────────────────────────── */
+.section-title {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+.section-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+/* ─── Grid Helpers ────────────────────────────────────────────────── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
+/* Grid children must be able to shrink */
+.grid-2 > *, .grid-3 > *, .grid-4 > * { min-width: 0; overflow: hidden; }
+@media(max-width:1024px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
+@media(max-width:768px)  { .grid-2,.grid-3,.grid-4 { grid-template-columns: 1fr; } }
+
+/* ─── Markdown Renderer — Medical Report Style ───────────────────── */
+@keyframes mdFadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+.md {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
+  animation: mdFadeIn 0.35s ease forwards;
+}
+
+/* ── H1 — Report title with gradient accent bar ── */
+.md h1 {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 18px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid transparent;
+  background: linear-gradient(var(--bg-card), var(--bg-card)) padding-box,
+              linear-gradient(90deg, var(--blue), var(--cyan)) border-box;
+  letter-spacing: -0.01em;
+}
+
+/* ── H2 — Section headers with tinted pill ── */
+.md h2 {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin: 22px 0 10px;
+  padding: 6px 12px;
+  background: rgba(14,165,233,0.07);
+  border-left: 3px solid var(--blue);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+/* ── H3 — Sub-section ── */
+.md h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 14px 0 6px;
+  opacity: 0.9;
+}
+
+/* ── Paragraphs ── */
+.md p {
+  font-size: 14px;
+  margin-bottom: 10px;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+
+/* ── Lists ── */
+.md ul, .md ol { padding-left: 0; margin-bottom: 12px; list-style: none; }
+.md li {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  line-height: 1.65;
+  padding: 5px 10px 5px 28px;
+  position: relative;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.md li:hover { background: rgba(14,165,233,0.04); }
+.md ul li::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--blue);
+  opacity: 0.7;
+}
+.md ol { counter-reset: md-ol; }
+.md ol li { counter-increment: md-ol; }
+.md ol li::before {
+  content: counter(md-ol);
+  position: absolute;
+  left: 6px;
+  top: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue);
+  opacity: 0.8;
+}
+
+/* ── Inline emphasis ── */
+.md strong { color: var(--text-primary); font-weight: 600; }
+.md em { color: var(--cyan); font-style: normal; }
+
+/* ── Code ── */
+.md code {
+  background: var(--bg-surface);
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 13px;
+  color: var(--blue);
+  white-space: pre-wrap;
+  word-break: break-all;
+  border: 1px solid var(--border);
+}
+.md pre {
+  background: var(--bg-surface);
+  padding: 14px;
+  border-radius: var(--radius);
+  overflow-x: auto;
+  margin-bottom: 12px;
+  white-space: pre-wrap;
+  border: 1px solid var(--border);
+}
+.md pre code { border: none; padding: 0; }
+
+/* ── Blockquote — used for clinical notes / summaries ── */
+.md blockquote {
+  border-left: 3px solid var(--cyan);
+  background: rgba(6,182,212,0.06);
+  padding: 10px 16px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--text-secondary);
+  margin: 14px 0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* ── Horizontal rule — section separator ── */
+.md hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, var(--blue) 0%, transparent 100%);
+  opacity: 0.25;
+  margin: 20px 0;
+}
+
+/* ── Tables ── */
+.md table { border-collapse: collapse; width: 100%; margin: 14px 0; display: block; overflow-x: auto; border-radius: var(--radius); overflow: hidden; }
+.md th, .md td { border: 1px solid var(--border); padding: 9px 14px; font-size: 13px; text-align: left; white-space: normal; }
+.md th { background: rgba(14,165,233,0.08); color: var(--text-primary); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+.md td { color: var(--text-secondary); }
+.md tr:nth-child(even) td { background: rgba(14,165,233,0.03); }
+
+/* ── Images ── */
+.md img { max-width: 100%; height: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+
+/* ── Print Styles for Report ── */
+@media print {
+  body * { visibility: hidden; }
+  .md, .md * { visibility: visible; }
+  .md { position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; background: #fff !important; }
+  .md h1, .md h2, .md h3 { color: #000 !important; border-color: #000 !important; }
+}
+
+/* ─── Animations ─────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity:0; }
+  to   { opacity:1; }
+}
+.fade-in { animation: fadeIn 0.3s ease forwards; }
+.fade-in-up { animation: fadeInUp 0.4s ease forwards; }
+
+/* ─── Background Grid Pattern ────────────────────────────────────── */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(14,165,233,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14,165,233,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ─── Stat Tile ──────────────────────────────────────────────────── */
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.stat-tile .label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.stat-tile .value {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.stat-tile .sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ─── Tag/Chip ────────────────────────────────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: default;
+}
+
+/* ─── Progress Bar ──────────────────────────────────────────────── */
+.progress-bar { height: 6px; background: var(--bg-surface); border-radius: 99px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--cyan)); border-radius: 99px; transition: width 0.5s ease; }
+
+/* ─── Skeleton Loading ───────────────────────────────────────────── */
+@keyframes shimmer { to { background-position: 200% center; } }
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-surface) 0%, rgba(14,165,233,0.08) 50%, var(--bg-surface) 100%);
+  background-size: 200% auto;
+  animation: shimmer 1.5s linear infinite;
+  border-radius: var(--radius);
+}
+
+/* ─── Status Indicators ──────────────────────────────────────────── */
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-dot.green { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.status-dot.amber { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+.status-dot.red   { background: var(--red);   box-shadow: 0 0 8px var(--red); }
+.status-dot.blue  { background: var(--blue);  box-shadow: 0 0 8px var(--blue); }
+
+/* ─── Form Group ─────────────────────────────────────────────────── */
+.form-group { margin-bottom: 18px; }
+.form-group label { display:block; font-size:13px; font-weight:500; color:var(--text-secondary); margin-bottom:7px; }
+
+/* ─── Toast/Notifications ─────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  display: flex; align-items: center; gap: 12px;
+  z-index: 9999;
+  box-shadow: var(--shadow-md);
+  animation: fadeInUp 0.3s ease;
+  max-width: 360px;
+  font-size: 14px;
+}
