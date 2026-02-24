@@ -6,14 +6,14 @@ import {
 } from 'lucide-react';
 
 const NAV = [
-  { to: '/',              icon: User,          label: 'Patient Select',  phase: 0 },
-  { to: '/diagnosis',     icon: MessageSquare, label: 'AI Diagnosis',    phase: 1 },
-  { to: '/records',       icon: FileText,      label: 'Medical Records', phase: 2 },
-  { to: '/wellness',      icon: Leaf,          label: 'Wellness Plans',  phase: 3 },
-  { to: '/digital-twin',  icon: Cpu,           label: 'Digital Twin',    phase: 4 },
-  { to: '/medicine-check',icon: Pill,          label: 'Medicine Check',  phase: 5 },
-  { to: '/first-aid',     icon: ShieldAlert,   label: 'First Aid',       phase: 5 },
-  { to: '/progress',      icon: TrendingUp,    label: 'Progress',        phase: 6 },
+  { to: '/', icon: User, label: 'Patient Select', phase: 0 },
+  { to: '/diagnosis', icon: MessageSquare, label: 'AI Diagnosis', phase: 1 },
+  { to: '/records', icon: FileText, label: 'Medical Records', phase: 2 },
+  { to: '/wellness', icon: Leaf, label: 'Wellness Plans', phase: 3 },
+  { to: '/digital-twin', icon: Cpu, label: 'Digital Twin', phase: 4 },
+  { to: '/medicine-check', icon: Pill, label: 'Medicine Check', phase: 5 },
+  { to: '/first-aid', icon: ShieldAlert, label: 'First Aid', phase: 5 },
+  { to: '/progress', icon: TrendingUp, label: 'Progress', phase: 6 },
 ];
 
 export default function Sidebar() {
@@ -23,8 +23,8 @@ export default function Sidebar() {
   const phaseIndex = (() => {
     const p = currentPhase;
     if (p === 'initial_interview') return 1;
-    if (p === 'second_interview')  return 4;
-    if (p === 'final_report')      return 5;
+    if (p === 'second_interview') return 4;
+    if (p === 'final_report') return 5;
     return 0;
   })();
 
@@ -36,7 +36,7 @@ export default function Sidebar() {
           <Stethoscope size={20} />
         </div>
         <div>
-          <div className="sidebar-logo-title">MedAI</div>
+          <div className="sidebar-logo-title">UmaimAI Care</div>
           <div className="sidebar-logo-sub">Hospital System</div>
         </div>
       </div>

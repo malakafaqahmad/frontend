@@ -16,7 +16,7 @@ const PAGE_META = {
 export default function Topbar() {
   const { pathname } = useLocation();
   const { patientId, currentPhase } = usePatient();
-  const meta = PAGE_META[pathname] || { title: 'MedAI Hospital', sub: '' };
+  const meta = PAGE_META[pathname] || { title: 'Umaim AI', sub: '' };
 
   const phaseLabel = {
     initial_interview: 'Phase 1 — Initial Interview',

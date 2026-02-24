@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePatient } from '../context/PatientContext';
+import DataViewer from '../components/ui/DataViewer';
 import { digitalTwinAnalyze, digitalTwinQuickCheck, getPatientLogs } from '../services/api';
 import {
   LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -10,6 +11,7 @@ import {
   Cpu, TrendingUp, TrendingDown, Minus, AlertTriangle,
   CheckCircle, Activity, Heart, Droplets, Wind, ChevronRight,
   Pill, Leaf, Zap, BarChart2, Target, GitBranch,
+  LayoutDashboard, Brain, ClipboardList,
 } from 'lucide-react';
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -108,58 +110,9 @@ function SectionCard({ icon: Icon, color, title, children }) {
 }
 
 // ── Memory Profiles Section ────────────────────────────────────────
-function ProfileContent({ data }) {
-  if (data == null) return <div style={{ fontSize: 13, color: 'var(--text-muted)', padding: '20px 0', textAlign: 'center' }}>No data for this period</div>;
-  if (typeof data !== 'object') return <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{String(data)}</div>;
-
-  return (
-    <div>
-      {Object.entries(data).map(([k, v]) => {
-        if (v == null || typeof v !== 'object') {
-          return <InfoRow key={k} label={capitalize(k)} value={v} color={statusColor(String(v ?? ''))} />;
-        }
-        if (Array.isArray(v)) {
-          return (
-            <div key={k} style={{ marginTop: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>{capitalize(k)}</div>
-              {v.length === 0
-                ? <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>None</div>
-                : v.map((item, i) => (
-                  <div key={i} style={{ fontSize: 12, color: 'var(--text-muted)', padding: '4px 10px', background: 'var(--bg-surface)', borderRadius: 'var(--radius)', marginBottom: 4 }}>
-                    {typeof item === 'object' ? (
-                      Object.entries(item).map(([ik, iv]) => (
-                        typeof iv !== 'object'
-                          ? <div key={ik} style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>{capitalize(ik)}</span><span style={{ fontWeight: 500, color: statusColor(String(iv)) }}>{fmt(iv)}</span></div>
-                          : null
-                      ))
-                    ) : String(item)}
-                  </div>
-                ))
-              }
-            </div>
-          );
-        }
-        // nested object
-        return (
-          <div key={k} style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>{capitalize(k)}</div>
-            <div style={{ padding: '6px 10px', background: 'var(--bg-surface)', borderRadius: 'var(--radius)' }}>
-              {Object.entries(v).map(([kk, vv]) =>
-                typeof vv !== 'object'
-                  ? <InfoRow key={kk} label={capitalize(kk)} value={vv} color={statusColor(String(vv ?? ''))} />
-                  : null
-              )}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 const PROFILE_KEYS = [
-  { id: 'daily',   label: 'Daily',   icon: '📅' },
-  { id: 'weekly',  label: 'Weekly',  icon: '📆' },
+  { id: 'daily', label: 'Daily', icon: '📅' },
+  { id: 'weekly', label: 'Weekly', icon: '📆' },
   { id: 'monthly', label: 'Monthly', icon: '🗓️' },
 ];
 
@@ -200,8 +153,8 @@ function MemoryProfilesSection({ profiles }) {
               padding: '6px 16px', borderRadius: 'calc(var(--radius) - 2px)',
               border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600,
               fontFamily: 'var(--font-body)',
-              background: activeProfile === id ? 'var(--blue-glow)'  : 'transparent',
-              color:      activeProfile === id ? 'var(--blue)'       : 'var(--text-muted)',
+              background: activeProfile === id ? 'var(--blue-glow)' : 'transparent',
+              color: activeProfile === id ? 'var(--blue)' : 'var(--text-muted)',
               borderColor: activeProfile === id ? 'rgba(14,165,233,0.3)' : 'transparent',
               transition: 'all 0.15s',
             }}
@@ -212,7 +165,7 @@ function MemoryProfilesSection({ profiles }) {
       </div>
 
       {/* Profile content */}
-      <ProfileContent data={pickProfile(activeProfile)} />
+      <DataViewer data={pickProfile(activeProfile)} />
     </div>
   );
 }
@@ -233,32 +186,35 @@ const DEFAULT_LOG = {
 export default function DigitalTwinPage() {
   const { patientId, digitalTwinResult, update } = usePatient();
   const navigate = useNavigate();
-  const [result, setResult]       = useState(digitalTwinResult);
-  const [log, setLog]             = useState(DEFAULT_LOG);
-  const [loading, setLoading]     = useState(false);
+  const [result, setResult] = useState(digitalTwinResult);
+  const [log, setLog] = useState(DEFAULT_LOG);
+  const [loading, setLoading] = useState(false);
   const [quickLoading, setQuickLoading] = useState(false);
-  const [error, setError]         = useState('');
-  const [tab, setTab]             = useState('dashboard');
+  const [error, setError] = useState('');
+  const [tab, setTab] = useState('dashboard');
   const [historicalLogs, setHistoricalLogs] = useState([]);
 
   // Fetch historical logs on mount
   useEffect(() => {
     if (!patientId) return;
     getPatientLogs(patientId)
-      .then((data) => setHistoricalLogs(data?.logs || []))
-      .catch(() => {});
+      .then((data) => {
+        console.log("DigitalTwin API Response (Patient Logs):", data);
+        setHistoricalLogs(data?.logs || []);
+      })
+      .catch(() => { });
   }, [patientId]);
 
   // ── Aliases ──────────────────────────────────────────────────────
-  const summary        = result?.executive_summary;
-  const analysisRes    = result?.analysis_results  || {};
-  const memProfiles    = result?.memory_profiles   || null;
-  const forecast       = result?.health_forecast   || null;
-  const clinAlerts     = result?.clinical_alerts   || {};
-  const devAnalysis    = result?.deviation_analysis || null;
-  const dtState        = result?.digital_twin_state || null;
-  const processedLogs  = result?.processed_logs    || null;
-  const alerts         = clinAlerts.alerts || [];
+  const summary = result?.executive_summary;
+  const analysisRes = result?.analysis_results || {};
+  const memProfiles = result?.memory_profiles || null;
+  const forecast = result?.health_forecast || null;
+  const clinAlerts = result?.clinical_alerts || {};
+  const devAnalysis = result?.deviation_analysis || null;
+  const dtState = result?.digital_twin_state || null;
+  const processedLogs = result?.processed_logs || null;
+  const alerts = clinAlerts.alerts || [];
 
   const trendData = processedLogs?.weekly_summary?.daily_trends || null;
 
@@ -272,6 +228,7 @@ export default function DigitalTwinPage() {
     setQuickLoading(true); setError('');
     try {
       const res = await digitalTwinQuickCheck({ patient_id: patientId, daily_logs: log });
+      console.log("DigitalTwin API Response (Quick Check):", res);
       setResult((prev) => ({
         ...(prev || {}),
         executive_summary: {
@@ -313,6 +270,7 @@ export default function DigitalTwinPage() {
         previous_monthly_logs: [log],
       };
       const res = await digitalTwinAnalyze(payload);
+      console.log("DigitalTwin API Response (Full Analysis):", res);
       setResult(res);
       update({ digitalTwinResult: res });
     } catch (e) { setError(e.message); }
@@ -324,16 +282,16 @@ export default function DigitalTwinPage() {
 
   // ── Tabs list ────────────────────────────────────────────────────
   const TABS = [
-    { id: 'dashboard',  label: 'Dashboard' },
-    { id: 'medication', label: 'Medications',  show: !!analysisRes.medication_adherence },
-    { id: 'lifestyle',  label: 'Lifestyle',    show: !!analysisRes.lifestyle_evaluation },
-    { id: 'symptoms',   label: 'Symptoms',     show: !!analysisRes.symptoms_correlation },
-    { id: 'deviation',  label: 'Deviation',    show: !!devAnalysis },
-    { id: 'twinstate',  label: 'Twin State',   show: !!dtState },
-    { id: 'memory',     label: 'Memory',       show: !!memProfiles },
-    { id: 'forecast',   label: 'Forecast',     show: !!forecast },
-    { id: 'log',        label: 'Daily Log' },
-    { id: 'alerts',     label: `Alerts${alerts.length > 0 ? ` (${alerts.length})` : ''}` },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'medication', label: 'Medications', show: !!analysisRes.medication_adherence, icon: Pill },
+    { id: 'lifestyle', label: 'Lifestyle', show: !!analysisRes.lifestyle_evaluation, icon: Leaf },
+    { id: 'symptoms', label: 'Symptoms', show: !!analysisRes.symptoms_correlation, icon: GitBranch },
+    { id: 'deviation', label: 'Deviation', show: !!devAnalysis, icon: Target },
+    { id: 'twinstate', label: 'Twin State', show: !!dtState, icon: Cpu },
+    { id: 'memory', label: 'Memory', show: !!memProfiles, icon: Brain },
+    { id: 'forecast', label: 'Forecast', show: !!forecast, icon: TrendingUp },
+    { id: 'log', label: 'Daily Log', icon: ClipboardList },
+    { id: 'alerts', label: `Alerts${alerts.length > 0 ? ` (${alerts.length})` : ''}`, icon: AlertTriangle },
   ].filter((t) => t.show !== false);
 
   return (
@@ -376,6 +334,7 @@ export default function DigitalTwinPage() {
       <div className="dt-tabs">
         {TABS.map((t) => (
           <button key={t.id} className={`dt-tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
+            {t.icon && <t.icon size={14} style={{ marginRight: 8 }} />}
             {t.label}
           </button>
         ))}
@@ -393,19 +352,19 @@ export default function DigitalTwinPage() {
                 {summary?.overall_health_status || '—'}
               </div>
             </div>
-            <VitalCard icon={Heart}    label="Blood Pressure"  value={`${log.vitals.blood_pressure_systolic}/${log.vitals.blood_pressure_diastolic}`} unit="mmHg"  color="var(--red)" />
-            <VitalCard icon={Activity} label="Heart Rate"      value={log.vitals.heart_rate}          unit="bpm"   color="var(--blue)" />
-            <VitalCard icon={Droplets} label="Blood Glucose"   value={log.vitals.blood_glucose_mg_dl} unit="mg/dL" color="var(--amber)" />
+            <VitalCard icon={Heart} label="Blood Pressure" value={`${log.vitals.blood_pressure_systolic}/${log.vitals.blood_pressure_diastolic}`} unit="mmHg" color="var(--red)" />
+            <VitalCard icon={Activity} label="Heart Rate" value={log.vitals.heart_rate} unit="bpm" color="var(--blue)" />
+            <VitalCard icon={Droplets} label="Blood Glucose" value={log.vitals.blood_glucose_mg_dl} unit="mg/dL" color="var(--amber)" />
           </div>
 
           {/* Status summary row */}
           {summary && (
             <div className="grid-4" style={{ marginBottom: 20 }}>
               {[
-                { label: 'Trajectory',        value: summary.trajectory,       icon: TrajIcon,      color: trajColor },
-                { label: 'Deviation Status',  value: summary.deviation_status, icon: Target,        color: statusColor(summary.deviation_status) },
-                { label: 'Critical Alerts',   value: summary.critical_alerts ?? '—', icon: AlertTriangle, color: (summary.critical_alerts > 0) ? 'var(--red)' : 'var(--green)' },
-                { label: 'High Priority',     value: summary.high_priority_alerts ?? clinAlerts.alert_summary?.high_priority_count ?? '—', icon: Zap, color: 'var(--amber)' },
+                { label: 'Trajectory', value: summary.trajectory, icon: TrajIcon, color: trajColor },
+                { label: 'Deviation Status', value: summary.deviation_status, icon: Target, color: statusColor(summary.deviation_status) },
+                { label: 'Critical Alerts', value: summary.critical_alerts ?? '—', icon: AlertTriangle, color: (summary.critical_alerts > 0) ? 'var(--red)' : 'var(--green)' },
+                { label: 'High Priority', value: summary.high_priority_alerts ?? clinAlerts.alert_summary?.high_priority_count ?? '—', icon: Zap, color: 'var(--amber)' },
               ].map(({ label, value, icon: Icon, color }) => (
                 <div key={label} className="card card-sm" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 36, height: 36, borderRadius: 10, background: `${color}18`, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -426,27 +385,27 @@ export default function DigitalTwinPage() {
             // Format 1 (generated): { day, vitals:{SBP,DBP,HR,O2_saturation,temperature}, exercise_minutes, diet:{morning,...} }
             // Format 2 (user-submitted): { date, vitals:{blood_pressure_systolic,...}, exercise:{exercise_minutes}, nutrition:{meals} }
             const normalise = (d, i) => ({
-              label:    d.day != null ? `D${d.day}` : (d.date ? d.date.slice(5) : `D${i + 1}`),
-              SBP:      d.vitals?.SBP  ?? d.vitals?.blood_pressure_systolic,
-              DBP:      d.vitals?.DBP  ?? d.vitals?.blood_pressure_diastolic,
-              HR:       d.vitals?.HR   ?? d.vitals?.heart_rate,
-              O2:       d.vitals?.O2_saturation ?? d.vitals?.oxygen_saturation_percent,
-              Temp:     d.vitals?.temperature != null
-                          ? d.vitals.temperature
-                          : d.vitals?.temperature_f != null
-                            ? +((d.vitals.temperature_f - 32) * 5 / 9).toFixed(1)
-                            : undefined,
+              label: d.day != null ? `D${d.day}` : (d.date ? d.date.slice(5) : `D${i + 1}`),
+              SBP: d.vitals?.SBP ?? d.vitals?.blood_pressure_systolic,
+              DBP: d.vitals?.DBP ?? d.vitals?.blood_pressure_diastolic,
+              HR: d.vitals?.HR ?? d.vitals?.heart_rate,
+              O2: d.vitals?.O2_saturation ?? d.vitals?.oxygen_saturation_percent,
+              Temp: d.vitals?.temperature != null
+                ? d.vitals.temperature
+                : d.vitals?.temperature_f != null
+                  ? +((d.vitals.temperature_f - 32) * 5 / 9).toFixed(1)
+                  : undefined,
               Exercise: d.exercise_minutes ?? d.exercise?.exercise_minutes,
             });
 
             const histChart = historicalLogs.map(normalise).reverse(); // oldest → newest left-to-right
-            const hasData   = histChart.length > 0;
+            const hasData = histChart.length > 0;
 
             const VITAL_CHARTS = [
-              { label: 'Blood Pressure (mmHg)', lines: [{ key: 'SBP', color: 'var(--red)'    }, { key: 'DBP', color: 'var(--amber)'  }] },
-              { label: 'Heart Rate (bpm)',       lines: [{ key: 'HR',  color: 'var(--blue)'   }] },
-              { label: 'O₂ Saturation (%)',      lines: [{ key: 'O2',  color: 'var(--cyan)'   }] },
-              { label: 'Temperature (°C)',       lines: [{ key: 'Temp',color: 'var(--purple)' }] },
+              { label: 'Blood Pressure (mmHg)', lines: [{ key: 'SBP', color: 'var(--red)' }, { key: 'DBP', color: 'var(--amber)' }] },
+              { label: 'Heart Rate (bpm)', lines: [{ key: 'HR', color: 'var(--blue)' }] },
+              { label: 'O₂ Saturation (%)', lines: [{ key: 'O2', color: 'var(--cyan)' }] },
+              { label: 'Temperature (°C)', lines: [{ key: 'Temp', color: 'var(--purple)' }] },
             ];
 
             return (
@@ -480,7 +439,7 @@ export default function DigitalTwinPage() {
                                 <defs>
                                   {lines.map(({ key, color }) => (
                                     <linearGradient key={key} id={`hg-${key}`} x1="0" y1="0" x2="0" y2="1">
-                                      <stop offset="5%"  stopColor={color} stopOpacity={0.2} />
+                                      <stop offset="5%" stopColor={color} stopOpacity={0.2} />
                                       <stop offset="95%" stopColor={color} stopOpacity={0} />
                                     </linearGradient>
                                   ))}
@@ -509,7 +468,7 @@ export default function DigitalTwinPage() {
                           <AreaChart data={histChart} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                             <defs>
                               <linearGradient id="hg-ex" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%"  stopColor="var(--green)" stopOpacity={0.2} />
+                                <stop offset="5%" stopColor="var(--green)" stopOpacity={0.2} />
                                 <stop offset="95%" stopColor="var(--green)" stopOpacity={0} />
                               </linearGradient>
                             </defs>
@@ -542,7 +501,7 @@ export default function DigitalTwinPage() {
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                         <thead>
                           <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                            {['Day','SBP','DBP','HR','O₂','Temp','Exercise','Meds Taken','Diet'].map((h) => (
+                            {['Day', 'SBP', 'DBP', 'HR', 'O₂', 'Temp', 'Exercise', 'Meds Taken', 'Diet'].map((h) => (
                               <th key={h} style={{ padding: '6px 10px', color: 'var(--text-muted)', fontWeight: 600, textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
                             ))}
                           </tr>
@@ -550,7 +509,7 @@ export default function DigitalTwinPage() {
                         <tbody>
                           {histChart.map((n, ri) => {
                             const d = historicalLogs[historicalLogs.length - 1 - ri]; // matches reversed order
-                            const allMeds   = d?.medications_taken?.length ?? 0;
+                            const allMeds = d?.medications_taken?.length ?? 0;
                             const takenMeds = d?.medications_taken?.filter((m) =>
                               m.taken_times != null ? m.taken_times > 0 : m.taken === true
                             ).length ?? 0;
@@ -564,17 +523,17 @@ export default function DigitalTwinPage() {
                                 `${m.meal_time}: ${(m.items || []).map((it) => it.food_name).join(', ')}`
                               ).join(' | ');
                             }
-                            const adhereFrac  = allMeds > 0 ? takenMeds / allMeds : 1;
+                            const adhereFrac = allMeds > 0 ? takenMeds / allMeds : 1;
                             const adhereColor = adhereFrac === 1 ? 'var(--green)' : adhereFrac >= 0.5 ? 'var(--amber)' : 'var(--red)';
                             return (
                               <tr key={ri} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                 <td style={{ padding: '8px 10px', color: 'var(--text-secondary)', fontWeight: 600 }}>{n.label}</td>
-                                <td style={{ padding: '8px 10px', color: 'var(--red)'    }}>{n.SBP      ?? '—'}</td>
-                                <td style={{ padding: '8px 10px', color: 'var(--amber)'  }}>{n.DBP      ?? '—'}</td>
-                                <td style={{ padding: '8px 10px', color: 'var(--blue)'   }}>{n.HR       ?? '—'}</td>
-                                <td style={{ padding: '8px 10px', color: 'var(--cyan)'   }}>{n.O2       ?? '—'}</td>
-                                <td style={{ padding: '8px 10px', color: 'var(--purple)' }}>{n.Temp     ?? '—'}</td>
-                                <td style={{ padding: '8px 10px', color: 'var(--green)'  }}>{n.Exercise ?? '—'} min</td>
+                                <td style={{ padding: '8px 10px', color: 'var(--red)' }}>{n.SBP ?? '—'}</td>
+                                <td style={{ padding: '8px 10px', color: 'var(--amber)' }}>{n.DBP ?? '—'}</td>
+                                <td style={{ padding: '8px 10px', color: 'var(--blue)' }}>{n.HR ?? '—'}</td>
+                                <td style={{ padding: '8px 10px', color: 'var(--cyan)' }}>{n.O2 ?? '—'}</td>
+                                <td style={{ padding: '8px 10px', color: 'var(--purple)' }}>{n.Temp ?? '—'}</td>
+                                <td style={{ padding: '8px 10px', color: 'var(--green)' }}>{n.Exercise ?? '—'} min</td>
                                 <td style={{ padding: '8px 10px', color: adhereColor }}>
                                   {allMeds > 0 ? `${takenMeds}/${allMeds}` : '—'}
                                 </td>
@@ -614,122 +573,35 @@ export default function DigitalTwinPage() {
       {/* ── MEDICATION ADHERENCE TAB ───────────────────────────────── */}
       {tab === 'medication' && (
         <SectionCard icon={Pill} color="var(--blue)" title="Medication Adherence">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-            {Object.entries(analysisRes.medication_adherence || {}).map(([k, v]) =>
-              typeof v !== 'object' || v == null
-                ? <InfoRow key={k} label={capitalize(k)} value={v} color={statusColor(String(v))} />
-                : null
-            )}
-            {Object.entries(analysisRes.medication_adherence || {}).map(([k, v]) => {
-              if (typeof v !== 'object' || v == null) return null;
-              return (
-                <div key={k} style={{ marginTop: 12 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>{capitalize(k)}</div>
-                  {Array.isArray(v)
-                    ? v.map((item, i) => (
-                      <div key={i} style={{ fontSize: 12, color: 'var(--text-muted)', padding: '4px 8px', background: 'var(--bg-surface)', borderRadius: 'var(--radius)', marginBottom: 4 }}>
-                        {typeof item === 'object' ? JSON.stringify(item) : String(item)}
-                      </div>
-                    ))
-                    : Object.entries(v).map(([kk, vv]) => (
-                      <InfoRow key={kk} label={capitalize(kk)} value={vv} color={statusColor(String(vv))} />
-                    ))
-                  }
-                </div>
-              );
-            })}
-          </div>
+          <DataViewer data={analysisRes.medication_adherence} />
         </SectionCard>
       )}
 
       {/* ── LIFESTYLE TAB ─────────────────────────────────────────── */}
       {tab === 'lifestyle' && (
         <SectionCard icon={Leaf} color="var(--green)" title="Lifestyle Evaluation">
-          <div>
-            {Object.entries(analysisRes.lifestyle_evaluation || {}).map(([k, v]) =>
-              typeof v !== 'object' || v == null
-                ? <InfoRow key={k} label={capitalize(k)} value={v} color={statusColor(String(v))} />
-                : (
-                  <div key={k} style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>{capitalize(k)}</div>
-                    {Object.entries(v).map(([kk, vv]) => (
-                      <InfoRow key={kk} label={capitalize(kk)} value={vv} color={statusColor(String(vv))} />
-                    ))}
-                  </div>
-                )
-            )}
-          </div>
+          <DataViewer data={analysisRes.lifestyle_evaluation} />
         </SectionCard>
       )}
 
       {/* ── SYMPTOMS TAB ──────────────────────────────────────────── */}
       {tab === 'symptoms' && (
         <SectionCard icon={GitBranch} color="var(--purple)" title="Symptoms Correlation">
-          <div>
-            {Object.entries(analysisRes.symptoms_correlation || {}).map(([k, v]) =>
-              typeof v !== 'object' || v == null
-                ? <InfoRow key={k} label={capitalize(k)} value={v} color={statusColor(String(v))} />
-                : (
-                  <div key={k} style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>{capitalize(k)}</div>
-                    {Array.isArray(v)
-                      ? v.map((item, i) => (
-                        <div key={i} style={{ fontSize: 12, color: 'var(--text-muted)', padding: '4px 8px', background: 'var(--bg-surface)', borderRadius: 'var(--radius)', marginBottom: 4 }}>
-                          {typeof item === 'object' ? JSON.stringify(item) : String(item)}
-                        </div>
-                      ))
-                      : Object.entries(v).map(([kk, vv]) => (
-                        <InfoRow key={kk} label={capitalize(kk)} value={vv} color={statusColor(String(vv))} />
-                      ))
-                    }
-                  </div>
-                )
-            )}
-          </div>
+          <DataViewer data={analysisRes.symptoms_correlation} />
         </SectionCard>
       )}
 
       {/* ── DEVIATION TAB ─────────────────────────────────────────── */}
       {tab === 'deviation' && devAnalysis && (
         <SectionCard icon={Target} color="var(--cyan)" title="Deviation Analysis">
-          <div>
-            {Object.entries(devAnalysis).map(([k, v]) =>
-              typeof v !== 'object' || v == null
-                ? <InfoRow key={k} label={capitalize(k)} value={v} color={statusColor(String(v))} />
-                : (
-                  <div key={k} style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>{capitalize(k)}</div>
-                    {Object.entries(v).map(([kk, vv]) => (
-                      typeof vv !== 'object'
-                        ? <InfoRow key={kk} label={capitalize(kk)} value={vv} color={statusColor(String(vv))} />
-                        : null
-                    ))}
-                  </div>
-                )
-            )}
-          </div>
+          <DataViewer data={devAnalysis} />
         </SectionCard>
       )}
 
       {/* ── TWIN STATE TAB ────────────────────────────────────────── */}
       {tab === 'twinstate' && dtState && (
         <SectionCard icon={Cpu} color="var(--blue)" title="Digital Twin State">
-          <div>
-            {Object.entries(dtState).map(([k, v]) =>
-              typeof v !== 'object' || v == null
-                ? <InfoRow key={k} label={capitalize(k)} value={v} color={statusColor(String(v))} />
-                : (
-                  <div key={k} style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>{capitalize(k)}</div>
-                    {Object.entries(v).map(([kk, vv]) => (
-                      typeof vv !== 'object'
-                        ? <InfoRow key={kk} label={capitalize(kk)} value={vv} color={statusColor(String(vv))} />
-                        : null
-                    ))}
-                  </div>
-                )
-            )}
-          </div>
+          <DataViewer data={dtState} />
         </SectionCard>
       )}
 
@@ -792,13 +664,13 @@ export default function DigitalTwinPage() {
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>🩺 Vitals — {log.date}</div>
             <div className="grid-2" style={{ gap: 14 }}>
               {[
-                { key: 'blood_pressure_systolic',   label: 'Systolic BP',    unit: 'mmHg' },
-                { key: 'blood_pressure_diastolic',  label: 'Diastolic BP',   unit: 'mmHg' },
-                { key: 'heart_rate',                label: 'Heart Rate',     unit: 'bpm' },
-                { key: 'temperature_f',             label: 'Temperature',    unit: '°F' },
-                { key: 'blood_glucose_mg_dl',       label: 'Blood Glucose',  unit: 'mg/dL' },
-                { key: 'weight_lbs',                label: 'Weight',         unit: 'lbs' },
-                { key: 'oxygen_saturation_percent', label: 'O₂ Saturation',  unit: '%' },
+                { key: 'blood_pressure_systolic', label: 'Systolic BP', unit: 'mmHg' },
+                { key: 'blood_pressure_diastolic', label: 'Diastolic BP', unit: 'mmHg' },
+                { key: 'heart_rate', label: 'Heart Rate', unit: 'bpm' },
+                { key: 'temperature_f', label: 'Temperature', unit: '°F' },
+                { key: 'blood_glucose_mg_dl', label: 'Blood Glucose', unit: 'mg/dL' },
+                { key: 'weight_lbs', label: 'Weight', unit: 'lbs' },
+                { key: 'oxygen_saturation_percent', label: 'O₂ Saturation', unit: '%' },
               ].map(({ key, label, unit }) => (
                 <div key={key} className="form-group" style={{ marginBottom: 0 }}>
                   <label>{label} <span style={{ color: 'var(--text-muted)' }}>({unit})</span></label>
@@ -879,7 +751,7 @@ export default function DigitalTwinPage() {
                         <label>Severity</label>
                         <select className="input" value={s.severity}
                           onChange={(e) => setLog((p) => { const arr = [...p.symptoms]; arr[i] = { ...arr[i], severity: e.target.value }; return { ...p, symptoms: arr }; })}>
-                          {['mild','moderate','severe'].map((v) => <option key={v} value={v}>{capitalize(v)}</option>)}
+                          {['mild', 'moderate', 'severe'].map((v) => <option key={v} value={v}>{capitalize(v)}</option>)}
                         </select>
                       </div>
                       <div className="form-group" style={{ marginBottom: 0, flex: 1 }}>
@@ -955,7 +827,7 @@ export default function DigitalTwinPage() {
                       <select className="input" value={meal.meal_time} onChange={(e) =>
                         setLog((p) => { const m = [...p.nutrition.meals]; m[mi] = { ...m[mi], meal_time: e.target.value }; return { ...p, nutrition: { meals: m } }; })
                       }>
-                        {['morning','afternoon','evening','night'].map((v) => (
+                        {['morning', 'afternoon', 'evening', 'night'].map((v) => (
                           <option key={v} value={v}>{capitalize(v)}</option>
                         ))}
                       </select>
@@ -1029,7 +901,7 @@ export default function DigitalTwinPage() {
                   <label>Exercise Type</label>
                   <select className="input" value={log.exercise.type}
                     onChange={(e) => setLog((p) => ({ ...p, exercise: { ...p.exercise, type: e.target.value } }))}>
-                    {['none','walking','running','cycling','swimming','strength','yoga','other'].map((v) => (
+                    {['none', 'walking', 'running', 'cycling', 'swimming', 'strength', 'yoga', 'other'].map((v) => (
                       <option key={v} value={v}>{capitalize(v)}</option>
                     ))}
                   </select>
@@ -1038,7 +910,7 @@ export default function DigitalTwinPage() {
                   <label>Intensity</label>
                   <select className="input" value={log.exercise.intensity}
                     onChange={(e) => setLog((p) => ({ ...p, exercise: { ...p.exercise, intensity: e.target.value } }))}>
-                    {['none','light','moderate','vigorous'].map((v) => (
+                    {['none', 'light', 'moderate', 'vigorous'].map((v) => (
                       <option key={v} value={v}>{capitalize(v)}</option>
                     ))}
                   </select>
@@ -1067,43 +939,16 @@ export default function DigitalTwinPage() {
 
       {/* ── ALERTS TAB ─────────────────────────────────────────────── */}
       {tab === 'alerts' && (
-        <div>
-          {/* Alert summary */}
-          {clinAlerts.alert_summary && (
-            <div className="grid-4" style={{ marginBottom: 16 }}>
-              {[
-                { label: 'Critical',  val: clinAlerts.alert_summary.critical_count,      color: 'var(--red)' },
-                { label: 'High',      val: clinAlerts.alert_summary.high_priority_count,  color: 'var(--amber)' },
-                { label: 'Medium',    val: clinAlerts.alert_summary.medium_count,          color: 'var(--blue)' },
-                { label: 'Low',       val: clinAlerts.alert_summary.low_count,             color: 'var(--green)' },
-              ].map(({ label, val, color }) => val != null ? (
-                <div key={label} className="card card-sm" style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 24, fontWeight: 800, color }}>{val ?? 0}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{label}</div>
-                </div>
-              ) : null)}
-            </div>
-          )}
-
-          {alerts.length === 0 ? (
-            <div className="card" style={{ textAlign: 'center', padding: 60 }}>
-              <CheckCircle size={40} style={{ color: 'var(--green)', marginBottom: 14 }} />
-              <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>No Alerts</div>
-              <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Run a quick check or full analysis to generate alerts</div>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {alerts.map((a, i) => <AlertItem key={i} alert={a} />)}
-            </div>
-          )}
-        </div>
+        <SectionCard icon={AlertTriangle} color="var(--red)" title="Clinical Alerts (Raw Response)">
+          <DataViewer data={clinAlerts} />
+        </SectionCard>
       )}
 
       <style>{`
         .vital-card { min-height: 100px; }
-        .dt-tabs { display:flex; gap:4; margin-bottom:20px; background:var(--bg-surface); border-radius:var(--radius-lg); padding:4px; border:1px solid var(--border); flex-wrap:wrap; }
-        .dt-tab { padding:8px 18px; border-radius:var(--radius); border:none; background:transparent; color:var(--text-secondary); font-size:13px; font-weight:500; cursor:pointer; transition:all 0.18s; font-family:var(--font-body); }
-        .dt-tab.active { background:var(--blue-glow); color:var(--blue); border:1px solid rgba(14,165,233,0.3); }
+        .dt-tabs { display:flex; gap:6px; margin-bottom:20px; background:var(--bg-surface); border-radius:var(--radius-lg); padding:6px; border:1px solid var(--border); flex-wrap:wrap; }
+        .dt-tab { display:flex; align-items:center; padding:8px 16px; border-radius:var(--radius); border:1px solid transparent; background:transparent; color:var(--text-secondary); font-size:12.5px; font-weight:600; cursor:pointer; transition:all 0.18s; font-family:var(--font-body); }
+        .dt-tab.active { background:var(--blue-glow); color:var(--blue); border-color:rgba(14,165,233,0.3); box-shadow: 0 2px 8px rgba(14,165,233,0.08); }
         .dt-tab:hover:not(.active) { color:var(--text-primary); background:var(--bg-hover); }
         .alert-item { padding:14px 16px; background:var(--bg-surface); border:1px solid var(--border); border-left:3px solid; border-radius:var(--radius); }
       `}</style>

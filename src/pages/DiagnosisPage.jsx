@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePatient } from '../context/PatientContext';
 import { sendChatMessage } from '../services/api';
 import MarkdownRenderer from '../components/ui/MarkdownRenderer';
+import DataViewer from '../components/ui/DataViewer';
 import {
   Send, Bot, User, FileText, ChevronRight, RefreshCw,
   Stethoscope, ClipboardList, X, AlertCircle,
@@ -49,7 +50,7 @@ function DifferentialCard({ data }) {
   const items = Array.isArray(data)
     ? data
     : typeof data === 'object' && data !== null
-      ? Object.entries(data).map(([k, v]) => ({ condition: k, ...( typeof v === 'object' ? v : { details: v }) }))
+      ? Object.entries(data).map(([k, v]) => ({ condition: k, ...(typeof v === 'object' ? v : { details: v }) }))
       : null;
 
   return (
@@ -87,7 +88,7 @@ function DifferentialCard({ data }) {
           })}
         </div>
       ) : (
-        <MarkdownRenderer content={typeof data === 'string' ? data : JSON.stringify(data, null, 2)} />
+        <DataViewer data={data} />
       )}
     </div>
   );
@@ -120,22 +121,22 @@ export default function DiagnosisPage() {
     currentReport, diffDiagnoses: ctxDiff, finalReport: ctxFinal, update,
   } = usePatient();
   const navigate = useNavigate();
-  const [messages, setMessages]           = useState(conversationHistory || []);
-  const [input, setInput]                 = useState('');
-  const [loading, setLoading]             = useState(false);
-  const [phase, setPhase]                 = useState('initial_interview');
-  const [progress, setProgress]           = useState(null);
-  const [report, setReport]               = useState(currentReport || '');
-  const [diffDiagnoses, setDiffDiagnoses] = useState(ctxDiff  ?? null);
-  const [finalReport, setFinalReport]     = useState(ctxFinal ?? null);
-  const [showModal, setShowModal]         = useState(false);
+  const [messages, setMessages] = useState(conversationHistory || []);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [phase, setPhase] = useState('initial_interview');
+  const [progress, setProgress] = useState(null);
+  const [report, setReport] = useState(currentReport || '');
+  const [diffDiagnoses, setDiffDiagnoses] = useState(ctxDiff ?? null);
+  const [finalReport, setFinalReport] = useState(ctxFinal ?? null);
+  const [showModal, setShowModal] = useState(false);
   // Restore to most complete tab available on mount
   const [reportTab, setReportTab] = useState(
     ctxFinal != null ? 'final' : ctxDiff != null ? 'diff' : 'report'
   );
-  const [error, setError]                 = useState('');
+  const [error, setError] = useState('');
   const bottomRef = useRef(null);
-  const inputRef  = useRef(null);
+  const inputRef = useRef(null);
   const hasStarted = useRef(false);
 
   useEffect(() => {
@@ -171,7 +172,7 @@ export default function DiagnosisPage() {
     }
 
     if (res.conversation_id) update({ conversationId: res.conversation_id });
-    if (res.phase)    { setPhase(res.phase); update({ currentPhase: res.phase }); }
+    if (res.phase) { setPhase(res.phase); update({ currentPhase: res.phase }); }
     if (res.progress) setProgress(res.progress);
 
     if (res.updated_report) {
@@ -215,9 +216,9 @@ export default function DiagnosisPage() {
 
   // Report panel tab list (only show tabs that have content)
   const reportTabs = [
-    { id: 'report', label: 'Live Report',     show: true },
-    { id: 'diff',   label: 'Differential Dx', show: diffDiagnoses != null },
-    { id: 'final',  label: 'Final Report',    show: finalReport != null },
+    { id: 'report', label: 'Live Report', show: true },
+    { id: 'diff', label: 'Differential Dx', show: diffDiagnoses != null },
+    { id: 'final', label: 'Final Report', show: finalReport != null },
   ].filter((t) => t.show);
 
   return (
@@ -310,8 +311,8 @@ export default function DiagnosisPage() {
                     onClick={() => setReportTab(t.id)}
                   >
                     {t.label}
-                    {t.id === 'diff'  && diffDiagnoses && <span className="rp-tab-dot blue" />}
-                    {t.id === 'final' && finalReport    && <span className="rp-tab-dot green" />}
+                    {t.id === 'diff' && diffDiagnoses && <span className="rp-tab-dot blue" />}
+                    {t.id === 'final' && finalReport && <span className="rp-tab-dot green" />}
                   </button>
                 ))}
               </div>
@@ -324,21 +325,21 @@ export default function DiagnosisPage() {
             {reportTab === 'report' && (
               report
                 ? <>
-                    <MarkdownRenderer content={report} />
-                    <button
-                      className="btn btn-primary btn-sm"
-                      style={{ marginTop: 20 }}
-                      onClick={() => navigate('/records')}
-                    >
-                      Upload Medical Records <ChevronRight size={14} />
-                    </button>
-                  </>
+                  <MarkdownRenderer content={report} />
+                  <button
+                    className="btn btn-primary btn-sm"
+                    style={{ marginTop: 20 }}
+                    onClick={() => navigate('/records')}
+                  >
+                    Upload Medical Records <ChevronRight size={14} />
+                  </button>
+                </>
                 : <div className="report-placeholder">
-                    <RefreshCw size={32} style={{ color: 'var(--text-muted)', marginBottom: 10 }} />
-                    <div style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center' }}>
-                      Report will appear here as the interview progresses
-                    </div>
+                  <RefreshCw size={32} style={{ color: 'var(--text-muted)', marginBottom: 10 }} />
+                  <div style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center' }}>
+                    Report will appear here as the interview progresses
                   </div>
+                </div>
             )}
 
             {/* Differential Diagnoses tab */}

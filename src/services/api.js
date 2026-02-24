@@ -5,7 +5,7 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 120000, // 2 min — AI calls can be slow
+  timeout: 1200000, // 12 min — AI calls can be slow
 });
 
 // ─── Response interceptor ─────────────────────────────────────────
@@ -43,7 +43,7 @@ export const uploadDocument = (patientId, file) => {
   form.append('file', file);
   return axios.post(`${BASE_URL}/api/document-analyzer`, form, {
     headers: { 'Content-Type': 'multipart/form-data' },
-    timeout: 120000, // AI image analysis can be slow
+    timeout: 1200000, // AI image analysis can be slow
   }).then((r) => r.data);
 };
 
@@ -56,7 +56,7 @@ export const uploadPDF = (file) => {
   form.append('file', file);
   return axios.post(`${BASE_URL}/pdf-reader`, form, {
     headers: { 'Content-Type': 'multipart/form-data' },
-    timeout: 60000,
+    timeout: 160000,
   }).then((r) => r.data);
 };
 
